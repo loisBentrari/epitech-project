@@ -1,0 +1,204 @@
+#!/usr/bin/env python3
+
+import numpy
+import sys
+from math import factorial
+
+PAIR = "pair_"
+THREE = "three_"
+FOUR = "four_"
+FULL = "full_"
+STRAIGHT = "straight_"
+YAMS = "yams_"
+
+TYPE = [PAIR, THREE, FOUR, FULL, STRAIGHT, YAMS]
+
+def arrangement(x, y):
+        return factorial(x) / factorial(x - y)
+
+def permutation(a, b):
+        return factorial(a) / (factorial(b)*factorial(a-b))
+
+def binomiale(n, k):
+        return (factorial(n) / (factorial(k)*factorial(n-k)))*pow(1/6, k)*pow((1 - 1/6),n-k)
+
+def printer(name, val_name, result):
+        print("chances to get a {} {}:  {:.2f}%".format(val_name, name, result))
+
+def Try_Int(s):
+    try:
+        int(s)
+        return True
+    except ValueError:
+        return False
+
+def chances_pair(data, type):
+        if (type.count('_') != 1):
+                exit(84)
+        types, number = type.split('_')
+        check_error_input(number)
+        if (number == 0):
+                exit(84);
+        occurence = data.count(int(number))
+        if (occurence >= 2):
+                printer("pair", number, 100)
+                exit(0)
+        univers = pow(6, 5 - occurence)
+        uplet = (pow(5, 3) * permutation(5 - occurence, 2 - occurence))
+        resultat = (uplet / univers)
+        resultat += ((pow(5, 2) * permutation(5 - occurence, 3 - occurence)) / univers)
+        resultat += ((5 * permutation(5 - occurence, 4 - occurence)) / univers)
+        resultat += (1 / univers)
+        prct = resultat * 100
+        printer("pair", number, prct)
+
+def chances_three(data, type):
+        if (type.find('_') == -1):
+                exit(84)
+        types, number = type.split('_')
+        check_error_input(number)
+        if (number == 0):
+                exit(84);
+        occurence = data.count(int(number))
+        if (occurence >= 3):
+                printer("three-of-a-kind", number, 100)
+                exit(0)
+        univers = pow(6, 5 - occurence)
+        uplet = (pow(5, 2) * permutation(5 - occurence, 3 - occurence))
+        resultat = (uplet / univers)
+        resultat += ((5 * permutation(5 - occurence, 4 - occurence)) / univers)
+        resultat += (1 / univers)
+        prct = resultat * 100
+        printer("three-of-a-kind", number, prct)
+
+def chances_four(data, type):
+        if (type.count('_') != 1):
+                exit(84)
+        types, number = type.split('_')
+        check_error_input(number)
+        if (number == 0):
+                exit(84);
+        occurence = data.count(int(number))
+        if (occurence >= 4):
+                printer("four-of-a-kind", number, 100)
+                exit(0)
+        uplet = (arrangement(5, 1) * permutation(5 - occurence, 4 - occurence))
+        univers = pow(6, 5 - occurence)
+        resultat = (uplet / univers) + (1 / univers)
+        prct = resultat * 100
+        printer("four-of-a-kind", number, prct)
+
+def chances_full(data, type):
+        if (type.count('_') != 2):
+                exit(84)
+        types, number_A, number_B = type.split('_')
+        check_error_input(number_A)
+        check_error_input(number_B)
+        if (int(number_A) == 0 or int(number_B) == 0 or int(number_A) == int(number_B)):
+                exit(84);
+        occurence_A = data.count(int(number_A))
+        occurence_B = data.count(int(number_B))
+        if (occurence_A > 3):
+                occurence_A = 3
+        if (occurence_B > 2):
+                occurence_B = 2        
+        if (occurence_A == 3 and occurence_B == 2):
+                print("chances to get a {} {} of {}:  {:.2f}%".format(number_A, "full", number_B, 100))
+                exit(0)
+        univers = pow(6, 5 - (occurence_A + occurence_B))
+        uplet_A = (factorial(5 - (occurence_A + occurence_B)) / (factorial(3 - occurence_B)*factorial(2 - occurence_A)))
+        resultat = ((uplet_A) / univers)
+        prct = resultat * 100
+        print("chances to get a {} {} of {}:  {:.2f}%".format(number_A, "full", number_B, prct))
+       
+def chances_straight(data, type):
+        if (type.count('_') != 1):
+                exit(84)
+        types, number = type.split('_')
+        check_error_input(number)
+        number = int(number)
+        if (number <= 4):
+                exit(84);
+        occurence = 0
+        for i in data:
+                check = data.count(int(i))
+                if check == 1 and int(i) != 0:
+                        occurence += 1
+                if int(i) == 1 and number == 6:
+                        occurence -= 1
+                if int(i) == 6 and number == 5:
+                        occurence -= 1
+        if (occurence == 5):
+                printer("straight",number,  100)
+                exit(0)
+        univers = pow(6, 5 - occurence)
+        resultat = factorial(5 - occurence) / univers
+        prct = resultat * 100
+        printer("straight", number, prct)
+
+def chances_yams(data, type):
+        if (type.count('_') != 1):
+                exit(84)
+        types, number = type.split('_')
+        check_error_input(number)
+        if (number == 0):
+                exit(84);
+        occurence = data.count(int(number))
+        if (occurence == 5):
+                printer("yams", number, 100)
+                exit(0)
+        univers = pow(6, 5 - occurence)
+        resultat = (1 / univers)
+        prct = resultat * 100
+        printer("yams", number, prct)
+
+def yams_201(data):
+        for combinaison in TYPE:
+                if(str(sys.argv[6]).find(combinaison) == 0):
+                        func = globals()['chances_' + combinaison.rstrip("_")]
+                        func(data, str(sys.argv[6]))
+                        exit(0)
+        exit(84)
+
+
+if (len(sys.argv) == 1):
+        exit(84);
+
+if (sys.argv[1] == "-h"):
+        print("USAGE")
+        print("\t./201yams d1 d2 d3 d4 d5 c")
+        print("DESCRIPTION")
+        print("\td1 value of the first die (0 if not thrown)")
+        print("\td2 value of the second die (0 if not thrown)")
+        print("\td3 value of the third die (0 if not thrown)")
+        print("\td4 value of the fourth die (0 if not thrown)")
+        print("\td5 value of the fifth die (0 if not thrown)")
+        print("\tc expected combination")
+        exit(0)
+
+if (len(sys.argv) != 7):
+        exit(84);
+        
+data = []
+
+
+def check_error_input(value):
+        if (Try_Int(value) == False):
+                print("Error : in value {}, invalid number.".format(value))
+                exit(84)
+        if (int(value) < 0):
+                print("Error in value : {}, you cannot set a die number negatif".format(value))
+                exit(84)
+        if (int(value) > 6):
+                print("Error in value : {}, you cannot set a die number upper than 6".format(value))
+                exit(84)        
+
+for i in range(1, len(sys.argv) - 1):
+        check_error_input(sys.argv[i])
+        data.append(int(sys.argv[i]))
+
+data.sort()
+yams_201(data)
+
+
+#check negatif number and upper7

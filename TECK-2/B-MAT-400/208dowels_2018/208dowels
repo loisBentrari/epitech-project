@@ -1,0 +1,168 @@
+#!/usr/bin/python3
+
+import sys
+import math
+
+def get_args():
+    if len(sys.argv) == 2 and sys.argv[1] == "-h":
+        usage()
+    if len(sys.argv) != 10:
+        sys.stderr.write("Need 9 arguments\n")
+        sys.exit(84)
+    try:
+        Oi = []
+        i = 1
+        while i < len(sys.argv):
+            Oi.append(int(sys.argv[i]))
+            i += 1
+    except:
+        sys.stderr.write("Invalid argument\n")
+        sys.exit(84)
+    program(Oi)
+
+def usage():
+    print("USAGE\n\t\t./207demography code [...]\n\nDESCRIPTION\n"
+          "\tcode\tcountry code")
+    sys.exit(0)
+
+def distribution_table():
+    table = [[] for i in range(11)]
+    table[0] = ["99", "90", "80", "70", "60", "50", "40", "30", "20", "10", "5", "2", "1"]
+    table[1] = ["0.00", "0.02", "0.06", "0.15", "0.27", "0.45", "0.71", "1.07", "1.64", "2.71", "3.84", "5.41", "6.63"]
+    table[2] = ["0.02", "0.21", "0.45", "0.71", "1.02", "1.39", "1.83", "2.41", "3.22", "4.61", "5.99", "7.82", "9.21"]
+    table[3] = ["0.11", "0.58", "1.01", "1.42", "1.87", "2.37", "2.95", "3.66", "4.64", "6.25", "7.81", "9.84", "11.34"]
+    table[4] = ["0.30", "1.06", "1.65", "2.19", "2.75", "3.36", "4.04", "4.88", "5.99", "7.78", "9.49", "11.67", "13.28"]
+    table[5] = ["0.55", "1.61", "2.34", "3.00", "3.66", "4.35", "5.13", "6.06", "7.29", "9.24", "11.07", "13.39", "15.09"]
+    table[6] = ["0.87", "2.20", "3.07", "3.83", "4.57", "5.35", "6.21", "7.23", "8.56", "10.64", "12.59", "15.03", "16.81"]
+    table[7] = ["1.24", "2.83", "3.82", "4.67", "5.49", "6.35", "7.28", "8.38", "9.80", "12.02", "14.07", "16.62", "18.48"]
+    table[8] = ["1.65", "3.49", "4.59", "5.53", "6.42", "7.34", "8.35", "9.52", "11.03", "13.36", "15.51", "18.17", "20.09"]
+    table[9] = ["2.09", "4.17", "5.38", "6.39", "7.36", "8.34", "9.41", "10.66", "12.24", "14.68", "16.92", "19.68", "21.67"]
+    table[10] = ["2.56", "4.87", "6.18", "7.27", "8.30", "9.34", "10.47", "11.78", "13.44", "15.99", "18.31", "21.16", "23.21"]
+    return table
+
+def rmv_occur(list, val):
+    return [value for value in list if value != val]
+
+def proba_binomial(save, pieces):
+    res = 0
+    for i in range(len(save)):
+        res += pieces[i] * save[i]
+    return res / 100
+
+def coef_binomial(n, k):
+    return math.factorial(n) // (math.factorial(n - k) * math.factorial(k))
+
+def binomial(k, p):
+    return coef_binomial(100, k) * (p ** k) * ((1 - p) ** (100 - k))
+
+def chi_2(Oi, Tx):
+    res = 0
+    for i in range(len(Oi)):
+        res += ((Oi[i] - Tx[i]) ** 2) / Tx[i]
+    return res
+
+def parsing(Oi, x):
+    i = len(Oi) - 1
+    while i > 0:
+        if Oi[i] < 10:
+            if Oi[i] + Oi[i - 1] >= 10:
+                Oi[i - 1] += Oi[i]
+            if Oi[i - 1] >= 10:
+                Oi[i] = 0
+        i -= 1
+    i = 0
+    while i < 8:
+        if Oi[i + 1] < 10 or Oi[i] < 10:
+            Oi[i + 1] += Oi[i]
+            Oi[i] = 0
+        i += 1
+    i = 0
+    while i < 9:
+        if Oi[i] == 0:
+            x[0].append(int(i))
+            while Oi[i] == 0:
+                i += 1
+            x[1].append(int(i))
+        else:
+            x[0].append(int(i))
+            x[1].append(int(i))
+        i += 1
+
+def print_x(x):
+    print ("   x\t|", end = '')
+    for i in range(len(x[0])):
+        if i == len(x[0]) - 1:
+            print (" %d+\t| Total" % x[0][i])
+        elif x[0][i] == x[1][i]:
+            print (" %d\t" % x[0][i], end = '|')
+        else:
+            print (" %d-%d\t" % (x[0][i], x[1][i]), end = '|')
+
+def print_ox(Oi):
+    print ("  Ox\t", end = '')
+    for i in range(len(Oi)):
+        print ("| %d\t" % Oi[i], end = '')
+    print ("| 100")
+    print ("  Tx\t", end = '')
+
+def print_tx(Tx, pieces, x, save):
+    tmp_tx = 0
+    n = 0
+    for i in range(x[0][-1]):
+        if x[0][n] == x[1][n]:
+            tmp_tx = (100 * binomial(pieces[i], proba_binomial(save, pieces) / 100))
+            print ("| %.1f\t" % tmp_tx, end = '')
+            Tx.append(tmp_tx)
+            tmp_tx = 0
+            n += 1
+        else:
+            tmp_tx += (100 * binomial(pieces[i], proba_binomial(save, pieces) / 100))
+            if i == x[1][n]:
+                print ("| %.1f\t" % tmp_tx, end = '')
+                Tx.append(tmp_tx)
+                tmp_tx = 0
+                n += 1
+    last = []
+    for nb in range(100):
+        last.append(nb)
+    last = last[x[0][-1]:]
+    for i in range(len(last)):
+        tmp_tx += (100 * binomial(last[i], proba_binomial(save, pieces) / 100))
+    print ("| %.1f\t" % tmp_tx, end = '')
+    Tx.append(tmp_tx)
+    print ("| 100")
+
+def find_val(d_tab, x, y):
+    if y > float(d_tab[x][12]):
+        print ("Fit validity:\t\tP < 1%")
+        return
+    if y < float(d_tab[x][0]):
+        print ("Fit validity:\t\tP > 99%")
+        return
+    for i in range(len(d_tab[x])):
+        if y == float(d_tab[x][i]):
+            print ("Fit validity:\t\tP = %d%%")
+        if y < float(d_tab[x][i]):
+            print ("Fit validity:\t\t%s%% < P < %s%%" % (d_tab[0][i], d_tab[0][i - 1]))
+            return
+
+def program(Oi):
+    if sum(Oi) != 100:
+        sys.stderr.write("Sum not equal 100\n")
+        sys.exit(84)
+    save = Oi.copy()
+    x = [[] for i in range(2)]
+    parsing(Oi, x)
+    print_x(x)
+    Oi = rmv_occur(Oi, 0)
+    print_ox(Oi)
+    pieces = [0, 1, 2, 3, 4, 5, 6, 7, 8]
+    Tx = []
+    print_tx(Tx, pieces, x, save)
+    d_tab = distribution_table()
+    print ("Distribution:\t\tB(100, %.4f)" % (proba_binomial(save, pieces) / 100))
+    print ("Chi-squared:\t\t%.3f" % chi_2(Oi, Tx))
+    print ("Degrees of freedom:\t%d" % (len(x[0]) - 2))
+    find_val(d_tab, (len(x[0]) - 2), chi_2(Oi, Tx))
+
+get_args()

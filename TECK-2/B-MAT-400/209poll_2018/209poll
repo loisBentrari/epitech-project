@@ -1,0 +1,81 @@
+#!/usr/bin/env python3
+
+import sys
+import numpy as np
+import time
+import csv
+from math import factorial, exp, sqrt, pi
+
+def Try_Int(s):
+    try:
+        int(s)
+        return True
+    except ValueError:
+        return False
+
+def Try_Float(s):
+    try:
+        float(s)
+        return True
+    except ValueError:
+        return False
+
+def check_error_parsing():
+	if (Try_Int(sys.argv[1]) == False or int(sys.argv[1]) < 0):
+		print("size of the population as to be an positiv int")
+		exit(84)
+	if (Try_Int(sys.argv[2]) == False) or int(sys.argv[2]) < 0:
+		print("size of sample as to be an int")
+		exit(84)
+	if (Try_Float(sys.argv[3]) == False or float(sys.argv[3]) < 0 or float(sys.argv[3]) > 100):
+		print("poercentage of votting intention as to be an float between 0% and 100%")
+		exit(84)
+
+def printer(SizePop, SizeSample, p, variance, conf_95, conf_99):
+	print("Population size: \t", SizePop)
+	print("Sample size: \t\t", SizeSample)
+	print("Population size: \t {}%".format(p))
+	print("Variance:\t\t {:.6f}".format(variance))
+	a1 = p - conf_95
+	if a1 < 0:
+		a1 = 0.00
+	b1 = p + conf_95
+	if b1 > 100:
+		b1 = 100.00
+	print("95% confidence interval: [{:.2f}%; {:.2f}%]".format(a1, b1))
+	a2 = p - conf_99
+	if a2 < 0:
+		a2 = 0.00
+	b2 = p + conf_99
+	if b2 > 100:
+		b2 = 100.00
+	print("99% confidence interval: [{:.2f}%; {:.2f}%]".format(a2, b2))
+
+def main():
+	SizePop = int(sys.argv[1])
+	SizeSample = int(sys.argv[2])
+	if SizeSample > SizePop or SizePop < 0 or SizeSample < 0:
+		print("Error in argument")
+		exit(84)
+	p = float(sys.argv[3]) / 100
+	variance = ((p * (1 - p)) / SizeSample) * ((SizePop - SizeSample) / (SizePop - 1));
+	conf_95 = 2 * 1.96 * sqrt(variance) / 2 * 100
+	conf_99 = 2 * 2.58 * sqrt(variance) / 2 * 100
+	printer(SizePop, SizeSample, p * 100, variance, conf_95, conf_99)
+
+
+if __name__ == '__main__':
+	if (len(sys.argv) != 4):
+		print("check -h vor usage")
+		exit(84)
+	if len(sys.argv) == 2 and sys.argv[1] == "-h":
+		print("USAGE")
+		print("\t./209poll pSize sSize p\n")
+		print("DESCRIPTION")
+		print("\tpSize\tsize of the population")
+		print("\tsSize\tsize of the sample (supposed to be representative)")
+		print("\tp\tpercentage of voting intentions for a specific candidate")
+		exit(0)
+	check_error_parsing()
+	main()
+

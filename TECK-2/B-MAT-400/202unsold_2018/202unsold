@@ -1,0 +1,138 @@
+#!/usr/bin/env python3
+
+import sys
+import numpy
+
+def Try_Int(s):
+    try:
+        int(s)
+        return True
+    except ValueError:
+        return False
+
+def loiProb(a, b):
+	tab = []
+	x = 10
+	y = 10
+	while y <= 50:
+		while x <= 50:
+			tab.append(((a - x)*(b - y))/(((5 * a )-150)*((5 * b)-150)))
+			x += 10
+		x = 10
+		y += 10
+	return tab
+
+def CalcXlaw(tab, i):
+	return(tab[i] + tab[i+5] + tab[i + 10] + tab[i + 15] + tab[i+20])
+
+
+def PrintDash():
+	for i in range(1, 60):
+		print('-', end='')
+	print()
+
+
+def printTab(tab):
+	xLaw = []
+	yLaw = []
+	for i in range(1 , 6):
+		print("\tX={}".format(i*10), end='')
+	print("\tY law")
+	i = 0
+	while (i < 5):
+		res = tab[0+(i*5)] + tab[1+(i*5)] + tab[2+(i*5)] + tab[3+(i*5)] + tab[4+(i*5)]
+		yLaw.append(res)
+		print("Y={}\t{:.3f}\t{:.3f}\t{:.3f}\t{:.3f}\t{:.3f}\t{:.3f}".format((i + 1) * 10, tab[0+(i*5)], tab[1+(i*5)], tab[2+(i*5)], tab[3+(i*5)], tab[4+(i*5)], res))
+		i += 1
+	print("X law\t{:.3f}\t{:.3f}\t{:.3f}\t{:.3f}\t{:.3f}\t1".format(CalcXlaw(tab, 0), CalcXlaw(tab, 1), CalcXlaw(tab, 2), CalcXlaw(tab, 3), CalcXlaw(tab, 4)))
+	xLaw.append(CalcXlaw(tab, 0))
+	xLaw.append(CalcXlaw(tab, 1))
+	xLaw.append(CalcXlaw(tab, 2))
+	xLaw.append(CalcXlaw(tab, 3))
+	xLaw.append(CalcXlaw(tab, 4))
+	return xLaw, yLaw
+
+
+
+def printZ(tab):
+	print("z\t20\t30\t40\t50\t60\t70\t80\t90\t100\ttotal")
+	zLaw = []
+	zLaw.append(tab[0])
+	zLaw.append(tab[1] + tab[5])
+	zLaw.append(tab[2] + tab[6] + tab[10])
+	zLaw.append(tab[3] + tab[7] + tab[11] + tab[15])
+	zLaw.append(tab[4] + tab[8] + tab[12] + tab[16] + tab[20])
+	zLaw.append(tab[9] + tab[13] + tab[17] + tab[21])
+	zLaw.append(tab[14] + tab[18] + tab[22])
+	zLaw.append(tab[19] + tab[23])
+	zLaw.append(tab[24])	
+	print("p(Z=z)\t{:.3f}\t{:.3f}\t{:.3f}\t{:.3f}\t{:.3f}\t{:.3f}\t{:.3f}\t{:.3f}\t{:.3f}\t1".format(zLaw[0], zLaw[1], zLaw[2], zLaw[3], zLaw[4], zLaw[5], zLaw[6], zLaw[7], zLaw[8]))
+	return zLaw
+
+def CalcExperience(law):
+	res = 0
+	for i in range(0, 5):
+		res += ((i + 1)* 10) * law[i]
+	return res
+
+def CalcExperienceZ(law):
+	res = 0
+	for i in range(1, 10):
+		res += ((i +1)* 10) * law[i - 1]
+	return res
+
+def CalcVariance(law, esp):
+	res = 0
+	for i in range(0,5):
+		res += ((i + 1)*10 - esp)**2 * law[i]
+	return res
+
+def CalcVarianceZ(law, esp):
+	res = 0
+	for i in range(1 ,10):
+		res += ((i + 1)*10 - esp)**2 * law[i - 1]
+	return res
+
+def printExpected(xLaw, yLaw, zLaw):
+	print("expected value of X:\t{:.1f}".format(CalcExperience(xLaw)))
+	print("variance of X:\t\t{:.1f}".format(CalcVariance(xLaw, CalcExperience(xLaw))))
+	print("expected value of Y:\t{:.1f}".format(CalcExperience(yLaw)))
+	print("variance of Y:\t\t{:.1f}".format(CalcVariance(yLaw, CalcExperience(yLaw))))
+	print("expected value of Z:\t{:.1f}".format(CalcExperienceZ(zLaw)))
+	print("variance of Z:\t\t{:.1f}".format(CalcVarianceZ(zLaw, CalcExperienceZ(zLaw))))
+
+if len(sys.argv) == 1:
+    exit(84);
+        
+if sys.argv[1] == "-h":
+	print("USAGE")
+	print("\t./202unsold a b")
+	print("DESCRIPTION")
+	print("\ta\tconstant computed from the past results")
+	print("\tb\tconstant computed from the past results")
+	exit(0)
+
+if len(sys.argv) != 3:
+	print("error in argument")
+	exit(84)
+
+if Try_Int(sys.argv[1]) == False or Try_Int(sys.argv[2]) == False:
+	print("Argument must be int")
+	exit(84)
+
+a = int(sys.argv[1])
+b = int(sys.argv[2])
+
+if (a < 50 or b < 50):
+	print("argument must be greater than 50")
+	exit(84)
+
+tab = loiProb(a, b)
+
+PrintDash()
+xLaw, yLaw = printTab(tab)
+PrintDash()
+zLaw = printZ(tab)
+PrintDash()
+printExpected(xLaw, yLaw, zLaw)
+PrintDash()
